@@ -1,0 +1,22 @@
+{
+  "name": "tool-jockey",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma || true",
+    "lint": "turbo run lint",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "dev": "./scripts/dev.sh",
+    "verify": "./scripts/verify.sh"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "19.4.0",
+    "@commitlint/config-conventional": "19.2.2",
+    "husky": "9.0.10"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md}": "pnpm exec prettier --write"
+  }
+}

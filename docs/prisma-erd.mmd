@@ -1,0 +1,19 @@
+```mermaid
+erDiagram
+  Warehouse ||--o{ Zone : contains
+  Warehouse ||--o{ Shelf : contains
+  Warehouse ||--o{ Tool : houses
+  Zone ||--o{ Tool : positions
+  Shelf ||--o{ Tool : stores
+  ToolType ||--o{ Tool : classifies
+  Tool ||--o{ Checkout : tracked
+  Tool ||--o{ Calibration : has
+  Tool ||--o{ Quarantine : has
+  Tool ||--o{ Transfer : moves
+  Tool ||--o{ HistoryEvent : logs
+  Tool ||--o{ Repair : repairs
+  User ||--o{ UserRole : assigned
+  Role ||--o{ UserRole : assigned
+  Role ||--o{ CapabilityAssignment : grants
+  Capability ||--o{ CapabilityAssignment : granted
+```

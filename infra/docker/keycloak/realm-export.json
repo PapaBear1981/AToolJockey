@@ -1,0 +1,36 @@
+{
+  "realm": "tool-jockey",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "tool-jockey-web",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "secret": "development-secret",
+      "redirectUris": ["http://localhost:3001/*"],
+      "defaultRoles": ["user"],
+      "attributes": {
+        "access.token.lifespan": "3600"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@example.com",
+      "credentials": [
+        { "type": "password", "value": "admin", "temporary": false }
+      ],
+      "realmRoles": ["admin"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      { "name": "admin" },
+      { "name": "manager" },
+      { "name": "user" }
+    ]
+  }
+}

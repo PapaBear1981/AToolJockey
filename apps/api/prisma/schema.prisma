@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ToolStatus {
+  SERVICEABLE
+  OUT_OF_SERVICE
+  QUARANTINED
+  IN_TRANSIT
+  CHECKED_OUT
+}
+
+enum CheckoutStatus {
+  ISSUED
+  RETURNED
+  OVERRIDDEN
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  zones     Zone[]
+  shelves   Shelf[]
+  tools     Tool[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Zone {
+  id          String   @id @default(uuid())
+  name        String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId String
+  shelves     Shelf[]
+  tools       Tool[]
+}
+
+model Shelf {
+  id          String   @id @default(uuid())
+  label       String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId String
+  zone        Zone?     @relation(fields: [zoneId], references: [id])
+  zoneId      String?
+  tools       Tool[]
+}
+
+model ToolType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  category  String
+  tools     Tool[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tool {
+  id            String        @id @default(uuid())
+  toolNumber    String        @unique
+  serialNumber  String
+  status        ToolStatus
+  warehouse     Warehouse     @relation(fields: [warehouseId], references: [id])
+  warehouseId   String
+  zone          Zone?         @relation(fields: [zoneId], references: [id])
+  zoneId        String?
+  shelf         Shelf?        @relation(fields: [shelfId], references: [id])
+  shelfId       String?
+  toolType      ToolType      @relation(fields: [toolTypeId], references: [id])
+  toolTypeId    String
+  calibration   Calibration?
+  quarantine    Quarantine?
+  history       HistoryEvent[]
+  checkouts     Checkout[]
+  transfers     Transfer[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([serialNumber])
+  @@index([status])
+}
+
+model Checkout {
+  id             String          @id @default(uuid())
+  tool           Tool            @relation(fields: [toolId], references: [id])
+  toolId         String
+  userId         String
+  status         CheckoutStatus
+  overrideReason String?
+  createdAt      DateTime        @default(now())
+  returnedAt     DateTime?
+}
+
+model Calibration {
+  id         String   @id @default(uuid())
+  tool       Tool     @relation(fields: [toolId], references: [id])
+  toolId     String   @unique
+  dueAt      DateTime
+  sentAt     DateTime?
+  receivedAt DateTime?
+  certificateUrl String?
+}
+
+model Quarantine {
+  id         String   @id @default(uuid())
+  tool       Tool     @relation(fields: [toolId], references: [id])
+  toolId     String   @unique
+  reason     String
+  notedAt    DateTime @default(now())
+  releasedAt DateTime?
+}
+
+model Transfer {
+  id            String   @id @default(uuid())
+  tool          Tool     @relation(fields: [toolId], references: [id])
+  toolId        String
+  fromWarehouse String
+  toWarehouse   String
+  status        String
+  requestedBy   String
+  approvedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HistoryEvent {
+  id         String   @id @default(uuid())
+  tool       Tool     @relation(fields: [toolId], references: [id])
+  toolId     String
+  type       String
+  payload    String
+  hashPrev   String?
+  hashThis   String
+  occurredAt DateTime @default(now())
+
+  @@index([toolId, occurredAt])
+}
+
+model FileAsset {
+  id        String   @id @default(uuid())
+  tool      Tool?    @relation(fields: [toolId], references: [id])
+  toolId    String?
+  url       String
+  thumbnail String?
+  kind      String
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  capabilities  CapabilityAssignment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Capability {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CapabilityAssignment {
+  id            String      @id @default(uuid())
+  role          Role        @relation(fields: [roleId], references: [id])
+  roleId        String
+  capability    Capability  @relation(fields: [capabilityId], references: [id])
+  capabilityId  String
+  createdAt     DateTime    @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  externalId String  @unique
+  email     String   @unique
+  displayName String
+  roles     UserRole[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserRole {
+  id      String @id @default(uuid())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  role    Role   @relation(fields: [roleId], references: [id])
+  roleId  String
+}
+
+model Repair {
+  id          String   @id @default(uuid())
+  tool        Tool     @relation(fields: [toolId], references: [id])
+  toolId      String
+  description String
+  resolution  String?
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+}
